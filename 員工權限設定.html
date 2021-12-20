@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <!-- import CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <!-- import Vue before Element -->
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <!-- import JavaScript -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+
+    <link href="https://unpkg.com/tabulator-tables@4.9.3/dist/css/tabulator.min.css" rel="stylesheet">
+    <script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.9.3/dist/js/tabulator.min.js"></script>
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/numeral@2.0.6/numeral.min.js"></script>
+
+    <script src="./plugin/jquery_ui/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="./plugin/jquery_ui/jquery-ui.min.css">
+
+    <script src="./plugin/datepicker_globe_tw.js"></script>
+
+    <script src="./js/createTableColumns.js"></script>
+    <script src="./js/createTable.js"></script>
+    <link rel="stylesheet" href="./css/tableCustom.css">
+
+    <link rel="stylesheet" href="./css/reset.css">
+    <link rel="stylesheet" href="./css/common.css">
+    <link rel="stylesheet" href="./css/element.css">
+
+</head>
+
+<body>
+    <div id="app">
+        <div class="header">
+            <div>系統權限設定</div>
+        </div>
+        <div class="container">
+            <div class="aside">
+                <el-menu default-active="1-3" background-color="#F7F7F7" text-color="#555" active-text-color="#027DB4">
+                    <el-submenu index="1">
+                        <template slot="title">
+                            <i class="el-icon-s-tools"></i>
+                            <span>基礎設定</span>
+                        </template>
+                        <el-menu-item index="1-1" onclick="location.href='./選單架構設定.html'">選單架構設定</el-menu-item>
+                        <el-menu-item index="1-2" onclick="location.href='./職位設定.html'">職位設定</el-menu-item>
+                        <el-menu-item index="1-3" onclick="location.href='./員工權限設定.html'">員工權限設定</el-menu-item>
+                    </el-submenu>
+                </el-menu>
+            </div>
+            <div class="main">
+                <div class="main-title">職位設定</div>
+                <div class="btn-row">
+                    <div class="btn-row-icon"><i class="el-icon-setting"></i></div>
+                    <div class="btn-row-btn">
+                        <button @click="addEmployee">新增員工</button>
+                    </div>
+                </div>
+                <div class="main-content">
+                    <el-drawer :visible.sync="drawerVisible" direction="rtl" :show-close="false"
+                        :destroy-on-close="true" :close-on-press-escape="false" :wrapper-closable="false" size="30%">
+                        <div slot="title" class="drawer-header">
+                            {{ drawerForm.title }}
+                        </div>
+                        <div class="drawer-body">
+                            <div class="form-group">
+                                <label>員工編號</label>
+                                <input type="text" placeholder="請輸入文字" v-model="drawerForm.employeeId">
+                            </div>
+                            <div class="form-group">
+                                <label>姓名</label>
+                                <input type="text" placeholder="請輸入文字" v-model="drawerForm.employeeName">
+                            </div>
+                            <div class="form-group">
+                                <label>角色</label>
+                                <el-select v-model="drawerForm.employeeRoles" multiple placeholder="請選擇" clearable>
+                                    <el-option v-for="(role, index) in drawerForm.rolesArray" :key="role+index"
+                                        :label="role" :value="role"></el-option>
+                                </el-select>
+                            </div>
+                        </div>
+                        <div class="drawer-footer">
+                            <button @click="drawerVisible = false">取 消</button>
+                            <button @click="saveEmployee">儲 存</button>
+                        </div>
+                    </el-drawer>
+                    <div v-if="vueTable" class="table-footer">
+                        <div class="table-input-search">
+                            <i class="el-icon-search"></i>
+                            <input placeholder="搜尋表格" v-model="searchStr" @input="search(searchStr, filterTable)">
+                            <i class="el-icon-circle-close" :style="{visibility:searchStr?'visible':'hidden'}"
+                                @click="searchStr='';filterTable('')"></i>
+                        </div>
+                        <div class="table-paginator">
+                            <div>共 {{ vueTable.getDataCount() }} 筆 &nbsp;|</div>
+                            <div>
+                                每頁筆數
+                                <select :value="vueTable.getPageSize()"
+                                    @change="vueTable.setPageSize($event.target.value)">
+                                    <option :value="100">100</option>
+                                    <option :value="50">50</option>
+                                    <option :value="25">25</option>
+                                </select>
+                            </div>
+                            <div class="table-page">
+                                <button class="first" title="First Page" @click="vueTable.setPage(1)">
+                                    第一頁
+                                </button>
+                            </div>
+                            <div class="table-page">
+                                <button title="Prev Page"
+                                    @click="vueTable.getPage()===1||vueTable.previousPage()">上頁</button>
+                            </div>
+                            <div>目前第
+                                <select :value="vueTable.getPage()"
+                                    @change="vueTable.setPage($event.target.value)">
+                                    <option v-for="pageNumber in vueTable.getPageMax()" :key="'page'+pageNumber"
+                                        :value="pageNumber">{{ pageNumber }}</option>
+                                </select>
+                                頁
+                            </div>
+                            <div class="table-page">
+                                <button title="Next Page"
+                                    @click="vueTable.getPage()===vueTable.getPageMax()||vueTable.nextPage()">下頁</button>
+                            </div>
+                            <div class="table-page">
+                                <button class="last" title="Last Page" @click="vueTable.setPage(vueTable.getPageMax())">
+                                    最後頁
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="tableEmployee"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+    let testData = [...new Array(1000)].map((_, index) => {
+        return {
+            employeeId: `ASI${String(index).padStart(4, 0)}`,
+            employeeName: String(index).padStart(4, 0),
+            employeeRoles: ["董事長", "處長", "經理", "一般員工", "實習生", "工讀生"].slice(0, index % 7)
+        }
+    })
+
+    let app = new Vue({
+        el: '#app',
+        data: function () {
+            return {
+                drawerVisible: false,
+                searchStr: "",
+                vueTable: null,
+                tableData: testData,
+                drawerForm: {
+                    index: null,
+                    title: "",
+                    employeeId: null,
+                    employeeName: null,
+                    employeeRoles: [],
+                    rolesArray: ["董事長", "處長", "經理", "一般員工", "實習生", "工讀生"],
+                },
+            }
+        },
+        watch: {
+
+        },
+        computed: {
+            iconGroup() {
+                return [
+                    {
+                        icon: "el-icon-edit",
+                        func: (row) => {
+                            let rowData = row.getData()
+                            row.update({ id: rowData.employeeId })
+                            this.drawerForm.index = rowData.employeeId
+                            this.drawerForm.title = "編輯"
+                            this.drawerForm.employeeName = rowData.employeeName
+                            this.drawerForm.employeeId = rowData.employeeId
+                            this.drawerForm.employeeRoles = rowData.employeeRoles
+                            this.drawerVisible = true
+                        }
+                    },
+                    {
+                        icon: "el-icon-delete",
+                        func: (row) => {
+                            let rowData = row.getData()
+                            let delConfirm = confirm(`是否刪除『${rowData.employeeId}：${rowData.employeeName}』？`)
+                            if (delConfirm) {
+                                // call api to del role
+                                row.delete()
+                                this.tableData = this.tableData.filter(data => { return data.employeeId !== rowData.employeeId })
+                            }
+                        }
+                    }
+                ]
+            },
+            columnConfig() {
+                let config = [
+                    ["rownum", ""],
+                    ["employeeId", "員工編號", "inputCenter", { width: 135 }],
+                    ["employeeName", "姓名", "inputCenter", { width: 135 }],
+                    ["employeeRoles", "角色", "input", { headerSort: false, }],
+                    ["icon", "編輯", this.iconGroup, { width: 60 }]
+                ]
+                return createTableColumns(config)
+            },
+        },
+        methods: {
+            sleep(ms) {
+                return new Promise((resolve) => setTimeout(resolve, ms));
+            },
+            async search(value, func) {
+                const delay = 300; //延遲 毫秒執行
+                this.requestLastTime = (new Date()).valueOf();
+                await this.sleep(delay);
+                let nowTime = (new Date()).valueOf();
+                let gap = nowTime - this.requestLastTime;
+                if (gap < delay) {
+                    return
+                } else {
+                    func(value)
+                }
+            },
+            filterTable(val) {
+                let filterData = this.tableData.filter(data => {
+                    let dataStr = Object.values(data).join(" ")
+                    return dataStr.includes(val)
+                })
+                this.vueTable.setData(filterData)
+                    .then(() => {
+                        this.vueTable.redraw()
+                    })
+            },
+            addEmployee() {
+                this.drawerForm.index = null
+                this.drawerForm.title = "新增員工"
+                this.drawerForm.employeeName = ""
+                this.drawerForm.employeeId = ""
+                this.drawerForm.employeeRoles = []
+                this.drawerVisible = true
+            },
+            saveEmployee() {
+                let index = this.drawerForm.index
+                let employeeName = this.drawerForm.employeeName
+                let employeeId = this.drawerForm.employeeId
+                let employeeRoles = this.drawerForm.employeeRoles
+                let saveConfirm = confirm(`是否儲存『${employeeId}：${employeeName}』?`)
+                if (!saveConfirm) { return }
+                if (index !== null) {
+                    // call api to save edit
+                    this.vueTable
+                        .updateRow(index, {
+                            id: "",
+                            employeeName,
+                            employeeId,
+                            employeeRoles,
+                        })
+                } else {
+                    this.tableData = [{ employeeName, employeeId, employeeRoles }, ...this.tableData]
+                    this.vueTable.addData([{ employeeName, employeeId, employeeRoles }], true)
+                }
+                this.drawerVisible = false
+            }
+        }
+    })
+    app.vueTable = createTable("tableEmployee", app.columnConfig, {})
+    $("#tableEmployee .tabulator-footer").css("display", "none")
+    app.vueTable.setData(app.tableData)
+</script>
+
+</html>

@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <!-- import CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <!-- import Vue before Element -->
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <!-- import JavaScript -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+
+    <link rel="stylesheet" href="./css/reset.css">
+    <link rel="stylesheet" href="./css/common.css">
+    <link rel="stylesheet" href="./css/element.css">
+
+</head>
+
+<body>
+    <div id="app">
+        <div class="header">
+            <div>系統權限設定</div>
+        </div>
+        <div class="container">
+            <div class="aside">
+                <el-menu default-active="1-2" background-color="#F7F7F7" text-color="#555" active-text-color="#027DB4">
+                    <el-submenu index="1">
+                        <template slot="title">
+                            <i class="el-icon-s-tools"></i>
+                            <span>基礎設定</span>
+                        </template>
+                        <el-menu-item index="1-1" onclick="location.href='./選單架構設定.html'">選單架構設定</el-menu-item>
+                        <el-menu-item index="1-2" onclick="location.href='./職位設定.html'">職位設定</el-menu-item>
+                        <el-menu-item index="1-3" onclick="location.href='./員工權限設定.html'">員工權限設定</el-menu-item>
+                    </el-submenu>
+                </el-menu>
+            </div>
+            <div class="main">
+                <div class="main-title">職位設定</div>
+                <div class="btn-row">
+                    <div class="btn-row-icon"><i class="el-icon-setting"></i></div>
+                    <div class="btn-row-btn">
+                        <button @click="addRole">新增角色</button>
+                    </div>
+                </div>
+
+                <div class="main-content">
+                    <el-drawer :visible.sync="drawerVisible" direction="rtl" :show-close="false"
+                        :destroy-on-close="true" :close-on-press-escape="false" :wrapper-closable="false" size="30%">
+                        <div slot="title" class="drawer-header">
+                            {{ drawerForm.title }}
+                        </div>
+                        <div class="drawer-body">
+                            <div class="form-group">
+                                <label>角色</label>
+                                <input type="text" placeholder="請輸入文字" v-model="drawerForm.name">
+                            </div>
+                            <div class="form-group">
+                                <label>權限</label>
+                                <input type="checkbox" @change="drawerTreeSelect">選擇全部
+                                <hr>
+                                <div class="tree-container">
+                                    <el-tree ref="tree" :data="treeData" node-key="title" default-expand-all
+                                        :check-strictly="true" show-checkbox
+                                        :props="{children: 'child', label: 'title'}">
+                                    </el-tree>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="drawer-footer">
+                            <button @click="drawerVisible = false">取 消</button>
+                            <button @click="saveRole">儲 存</button>
+                        </div>
+                    </el-drawer>
+                    <el-row class="table-header">
+                        <el-col :md="2" :sm="3" :xs="4">控制項</el-col>
+                        <el-col :md="22" :sm="21" :xs="20" class="role-name">角色</el-col>
+                    </el-row>
+                    <div class="table-body">
+                        <hr>
+                        <el-row class="table-row" v-for="(role, index) in roles" :key="role+index">
+                            <el-col :md="2" :sm="3" :xs="4">{{ role.auth.length }}</el-col>
+                            <el-col :md="18" :sm="17" :xs="16" class="role-name">{{ role.name }}</el-col>
+                            <el-col :md="4" :sm="4" :xs="4" class="table-icon">
+                                <i class="el-icon-edit" @click="editRole(role, index)"></i>
+                                <i class="el-icon-delete" @click="delRole(role, index)"></i>
+                            </el-col>
+                        </el-row>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+    let app = new Vue({
+        el: '#app',
+        data: function () {
+            return {
+                drawerVisible: false,
+                roles: [
+                    {
+                        name: "董事長",
+                        auth: ['分出/分進作業', '分出帳單維護', '分進帳單維護', '同業往來作業', '同業往來維護', '應攤回再保賠款作業', '理賠應攤回維護', '關帳作業', '應攤回各險總數上傳維護', '應攤回關帳維護', '理賠轉催收備呆作業', '同業往來關帳維護', '同業往來轉催收備呆作業', '再保預估作業', '分出預估維護', '分進(車險)預估維護', '分進(非車險)預估維護', '已報未決預估維護', '準備金預估維護', '匯款資訊維護作業', '公司資料維護_財管作業', 'FRIF001'],
+                    },
+                    {
+                        name: "處長",
+                        auth: ['分出/分進作業', '分出帳單維護', '分進帳單維護', '關帳作業', '應攤回各險總數上傳維護', '應攤回關帳維護', '理賠轉催收備呆作業', '同業往來關帳維護', '同業往來轉催收備呆作業', '再保預估作業', '分出預估維護', '分進(車險)預估維護', '分進(非車險)預估維護', '已報未決預估維護', '準備金預估維護', '匯款資訊維護作業', '公司資料維護_財管作業', 'FRIF001'],
+                    },
+                    {
+                        name: "經理",
+                        auth: ['分出/分進作業', '分出帳單維護', '分進帳單維護', '同業往來作業', '同業往來維護', '應攤回再保賠款作業', '理賠應攤回維護', '關帳作業', '應攤回各險總數上傳維護', '應攤回關帳維護', '理賠轉催收備呆作業', '同業往來關帳維護', '同業往來轉催收備呆作業'],
+                    },
+                    {
+                        name: "一般員工",
+                        auth: ['分出/分進作業', '分進帳單維護', '同業往來作業', '同業往來維護'],
+                    },
+                    {
+                        name: "實習生",
+                        auth: ['分出/分進作業', "分進帳單維護", "同業往來作業", "同業往來維護"],
+                    },
+                    {
+                        name: "工讀生",
+                        auth: ["同業往來作業", "同業往來維護"],
+                    },
+                ],
+                treeData: [
+                    {
+                        "href": null,
+                        "title": "分出/分進作業",
+                        "icon": "fa fa-plus-square",
+                        "child": [
+                            {
+                                "href": "/ckra/riaf001",
+                                "title": "分出帳單維護",
+                                "icon": null,
+                                "child": [],
+                                permission: []
+                            },
+                            {
+                                "href": "/ckra/riaf007",
+                                "title": "分進帳單維護",
+                                "icon": null,
+                                "child": [],
+                                permission: []
+                            }
+                        ]
+                    },
+                    {
+                        "href": null,
+                        "title": "同業往來作業",
+                        "icon": "fa fa-plus-square",
+                        "child": [
+                            {
+                                "href": "/ckra/riaf013",
+                                "title": "同業往來維護",
+                                "icon": null,
+                                "child": [],
+                                permission: []
+                            }
+                        ]
+                    },
+                    {
+                        "href": null,
+                        "title": "應攤回再保賠款作業",
+                        "icon": "fa fa-plus-square",
+                        "child": [
+                            {
+                                "href": "/ckra/riaf011",
+                                "title": "理賠應攤回維護",
+                                "icon": null,
+                                "child": [],
+                                permission: []
+                            }
+                        ]
+                    },
+                    {
+                        "href": null,
+                        "title": "關帳作業",
+                        "icon": "fa fa-plus-square",
+                        "child": [
+                            {
+                                "href": "/ckra/riaf021",
+                                "title": "應攤回各險總數上傳維護",
+                                "icon": null,
+                                "child": [],
+                                permission: []
+                            },
+                            {
+                                "href": "/ckra/riaf022",
+                                "title": "應攤回關帳維護",
+                                "icon": null,
+                                "child": [],
+                                permission: []
+                            },
+                            {
+                                "href": "/ckra/riaf024",
+                                "title": "理賠轉催收備呆作業",
+                                "icon": null,
+                                "child": [],
+                                permission: []
+                            },
+                            {
+                                "href": "/ckra/riaf025",
+                                "title": "同業往來關帳維護",
+                                "icon": null,
+                                "child": [],
+                                permission: []
+                            },
+                            {
+                                "href": "/ckra/riaf026",
+                                "title": "同業往來轉催收備呆作業",
+                                "icon": null,
+                                "child": [],
+                                permission: []
+                            }
+                        ]
+                    },
+                    {
+                        "href": null,
+                        "title": "再保預估作業",
+                        "icon": "fa fa-plus-square",
+                        "child": [
+                            {
+                                "href": "/ckra/riaf031",
+                                "title": "分出預估維護",
+                                "icon": null,
+                                "child": [],
+                                permission: []
+                            },
+                            {
+                                "href": "/ckra/riaf032",
+                                "title": "分進(車險)預估維護",
+                                "icon": null,
+                                "child": [],
+                                permission: []
+                            },
+                            {
+                                "href": "/ckra/riaf033",
+                                "title": "分進(非車險)預估維護",
+                                "icon": null,
+                                "child": [],
+                                permission: []
+                            },
+                            {
+                                "href": "/ckra/riaf034",
+                                "title": "已報未決預估維護",
+                                "icon": null,
+                                "child": [],
+                                permission: []
+                            },
+                            {
+                                "href": "/ckra/riaf035",
+                                "title": "準備金預估維護",
+                                "icon": null,
+                                "child": [],
+                                permission: []
+                            }
+                        ]
+                    },
+                    {
+                        "href": null,
+                        "title": "匯款資訊維護作業",
+                        "icon": "fa fa-plus-square",
+                        "child": [
+                            {
+                                "href": "/ckra/riaf051",
+                                "title": "公司資料維護_財管作業",
+                                "icon": null,
+                                "child": [],
+                                permission: []
+                            },
+                            {
+                                "href": "/ckra/frif001",
+                                "title": "FRIF001",
+                                "icon": null,
+                                "child": [],
+                                permission: []
+                            }
+                        ]
+                    }
+                ],
+                drawerForm: {
+                    title: "",
+                    index: null,
+                    name: "",
+                    nodeKeys: [],
+                    historyName: null,
+                    historyNodeKeys: null,
+                }
+            }
+        },
+        computed: {
+        },
+        methods: {
+            menuDataReduce(arry) {
+                return arry.reduce((arry, obj) => {
+                    if (obj.child.length !== 0) {
+                        return [...arry, obj.title, ...this.menuDataReduce(obj.child)]
+                    } else {
+                        return [...arry, obj.title]
+                    }
+                }, [])
+            },
+            drawerTreeSelect(e) {
+                let checked = e.target.checked
+                if (checked) {
+                    let nodeKeys = this.menuDataReduce(this.treeData)
+                    this.$refs.tree.setCheckedKeys(nodeKeys)
+                } else {
+                    this.$refs.tree.setCheckedKeys([])
+                }
+            },
+            addRole() {
+                new Promise((resolve, reject) => {
+                    this.drawerVisible = true
+                    this.drawerForm.title = "新增角色"
+                    this.drawerForm.index = null
+                    this.drawerForm.name = ""
+                    this.drawerForm.nodeKeys = []
+                    resolve()
+                }).then(() => {
+                    this.$refs.tree.setCheckedKeys(this.drawerForm.nodeKeys)
+                })
+            },
+            editRole(role, index) {
+                new Promise((resolve, reject) => {
+                    this.drawerForm.title = "編輯角色"
+                    this.drawerForm.index = index
+                    this.drawerForm.name = role.name
+                    this.drawerForm.nodeKeys = role.auth
+                    this.drawerForm.historyName = role.name //保留編輯前紀錄
+                    this.drawerForm.historyNodeKeys = [...role.auth]  //保留編輯前紀錄
+                    this.drawerVisible = true
+                    resolve()
+                }).then(() => {
+                    this.$refs.tree.setCheckedKeys(this.drawerForm.nodeKeys)
+                })
+            },
+            delRole(role, index) {
+                let delConfirm = confirm(`是否刪除『${role.name}』？`)
+                if (delConfirm) {
+                    // call api to del role
+                    this.roles.splice(index, 1)
+                }
+            },
+            saveRole() {
+                let index = this.drawerForm.index
+                let roleName = this.drawerForm.name
+                let saveConfirm = confirm(`是否儲存『${roleName}』?`)
+                if (!saveConfirm) { return }
+                if (index !== null) {
+                    // call api to save edit
+                    this.roles[index].name = roleName
+                    this.roles[index].auth = this.$refs.tree.getCheckedKeys()
+                } else {
+                    let name = roleName
+                    let auth = this.$refs.tree.getCheckedKeys()
+                    this.roles.push({ name, auth })
+                }
+                this.drawerVisible = false
+            }
+        }
+    })
+</script>
+
+</html>

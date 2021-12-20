@@ -1,0 +1,217 @@
+/* 全局設定 */
+html {
+    height: 100%;
+    min-height: 100%;
+}
+  
+body {
+    overflow-x: hidden;
+    overflow-y: auto;
+    position: relative;
+    top: 0;
+    left: 0;
+    max-width: 100%;
+    height: 100%;
+    min-height: 100%;
+    margin: 0;
+    padding: 0;
+    -webkit-text-size-adjust: 100%;
+}
+
+  /* 自定義 */
+*{
+    box-sizing: border-box;
+}
+
+.header{
+    height: 40px;
+    width: 100%;
+    background-color: #AAA;
+    font-size: 16px;
+    color: #FFF;
+    display: flex;
+    align-items: center;
+    padding-left: 40px;
+}
+.container{
+    height: calc(100vh - 40px);
+    display: flex;
+    flex-flow: row nowrap;
+}
+.aside {
+    flex: 0 0 200px;
+    padding-top: 20px;
+    background-color: #EEE;
+    overflow: scroll;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.main {
+    width: 100%;
+    background-color: #F2F2F2;
+    padding: 20px 10px;
+    overflow: scroll;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.main-title {
+    font-size: 16px;
+    color: #027DB4;
+    margin: 8px 0;
+}
+
+.btn-row {
+    display: flex;
+}
+
+.btn-row div{
+    height: 36px;
+    background-color: #FFF;
+    margin-bottom: 6px;
+}
+
+.btn-row .btn-row-icon {
+    width: 36px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 4px;
+    margin-right: 6px;
+    box-shadow: 2px 2px 5px rgb(0 0 0 / 10%);
+}
+
+.btn-row .btn-row-btn {
+    flex: 1 0 auto;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    border-radius: 4px;
+    padding-left: 4px;
+    box-shadow: 2px 2px 5px rgb(0 0 0 / 10%);
+}
+
+.btn-row button {
+    margin: 0 4px;
+    padding: 1px 15px;
+    font-size: 14px;
+}
+
+.main-content {
+    background-color: #FFF;
+    padding: 15px 10px;
+    position: relative;
+    /* min-height: 600px; */
+    border-radius: 4px;
+    box-shadow: 2px 2px 5px rgb(0 0 0 / 10%);
+}
+
+.table-header > div, .table-row > div {
+    display: flex;
+    justify-content: center;
+}
+
+.table-row > .table-icon {
+    justify-content: flex-end;
+}
+
+.table-row {
+    height: 30px;
+    display: flex;
+    align-items: center;
+    background-color: #F7F7F7;
+    border-radius: 4px;
+    border: 1px solid #AAA;
+    margin: 4px 0;
+}
+
+.table-row:hover {
+    background-color: #CDCDCD;
+}
+
+.table-row:first-child {
+    margin-top: 0;
+}
+
+.main-content .role-name {
+    justify-content: flex-start;
+}
+
+.table-icon i{
+    margin: 0 4px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.form-group {
+    margin: 10px 0 ;
+    font-size: 14px;
+}
+
+.form-group label {
+    color: #333;
+    display: block;
+    margin: 2px 0;
+}
+
+.form-group input[type="text"] {
+    margin: 2px 0;
+    height: 25px;
+    width: 100%;
+    font-size: 14px;
+    font-weight: 400;
+    border: 1px solid #000;
+    color: #000;
+    border-radius: 4px;
+}
+.form-group .el-input input[type="text"] {
+    margin: 0 0;
+    padding: 1px 2px;
+}
+
+.tree-container {
+    max-height: calc(100vh - 230px);
+    overflow: scroll;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.drawer-body {
+    min-height: calc(100% - 45px);
+}
+.drawer-footer {
+    display: flex;
+    justify-content: flex-end;
+    border-top: 1px solid #EEE;
+}
+.drawer-footer button{
+    margin: 8px 6px;
+}
+
+.form-group .el-select {
+    width: 100%;
+}
+
+.custom-tree-node {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-right: 5px;
+}
+
+.custom-tree-node-icon {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.custom-tree-node-icon i {
+    margin: 0 4px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.tree-drag .el-tree-node__content {
+    margin-bottom: 8px;
+}

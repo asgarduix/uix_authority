@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <!-- import CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <!-- import Vue before Element -->
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <!-- import JavaScript -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+
+    <link rel="stylesheet" href="./css/reset.css">
+    <link rel="stylesheet" href="./css/common.css">
+    <link rel="stylesheet" href="./css/element.css">
+
+</head>
+
+<body>
+    <div id="app">
+        <div class="header">
+            <div>系統權限設定</div>
+        </div>
+        <div class="container">
+            <div class="aside">
+                <el-menu default-active="1-1" background-color="#F7F7F7" text-color="#555" active-text-color="#027DB4">
+                    <el-submenu index="1">
+                        <template slot="title">
+                            <i class="el-icon-s-tools"></i>
+                            <span>基礎設定</span>
+                        </template>
+                        <el-menu-item index="1-1" onclick="location.href='./選單架構設定.html'">選單架構設定</el-menu-item>
+                        <el-menu-item index="1-2" onclick="location.href='./職位設定.html'">職位設定</el-menu-item>
+                        <el-menu-item index="1-3" onclick="location.href='./員工權限設定.html'">員工權限設定</el-menu-item>
+                    </el-submenu>
+                </el-menu>
+            </div>
+            <div class="main">
+                <div class="main-title">選單架構設定</div>
+                <div class="btn-row">
+                    <div class="btn-row-icon"><i class="el-icon-setting"></i></div>
+                    <div class="btn-row-btn">
+                        <button v-show="!draggable" @click="addRootmenu">新增目錄</button>
+                        <button v-show="!draggable" @click="sortMenu">排序目錄</button>
+                        <button v-show="draggable" @click="saveSortedMenu">儲存排序</button>
+                        <button v-show="draggable" @click="cancelSortMenu">取消</button>
+                    </div>
+                </div>
+
+                <div class="main-content">
+                    <el-drawer :visible.sync="drawerVisible" direction="rtl" :show-close="false"
+                        :destroy-on-close="true" :close-on-press-escape="false" :wrapper-closable="false" size="30%">
+                        <div slot="title" class="drawer-header">
+                            {{ drawerForm.title }}
+                        </div>
+                        <div class="drawer-body">
+                            <div class="form-group">
+                                <label>標題</label>
+                                <input type="text" placeholder="請輸入文字" v-model="drawerForm.pageTitle">
+                            </div>
+                            <div class="form-group">
+                                <label>網址</label>
+                                <input type="text" placeholder="請輸入文字" v-model="drawerForm.pageUrl">
+                            </div>
+                            <div class="form-group">
+                                <label>icon</label>
+                                <el-select v-model="drawerForm.pageIcon" placeholder="請選擇">
+                                    <el-option v-for="icon in drawerForm.iconOptions" :key="icon" :value="icon">
+                                        <div>
+                                            <i :class="icon"></i>
+                                            <span>{{ icon }}</span>
+                                        </div>
+                                    </el-option>
+                                </el-select>
+                            </div>
+                        </div>
+                        <div class="drawer-footer">
+                            <button @click="drawerVisible = false">取 消</button>
+                            <button @click="SwitchModeSave(drawerForm.data)">儲 存</button>
+                        </div>
+                    </el-drawer>
+                    <el-tree :class="{'tree-drag':draggable}" ref="tree" :data="treeData" node-key="title"
+                        :draggable="draggable" default-expand-all :props="{children: 'child',label: 'title'}">
+                        <div class="custom-tree-node" slot-scope="{ node, data }">
+                            <div>
+                                <i v-show="draggable" class="el-icon-sort"></i>
+                                {{ node.label }}
+                            </div>
+                            <div class="custom-tree-node-icon">
+                                <i class="el-icon-plus" @click.stop="addSubmenu(data)"></i>
+                                <i class="el-icon-edit" @click.stop="editMenu(data)"></i>
+                                <i class="el-icon-delete" @click.stop="delMenu(node, data)"></i>
+                            </div>
+                        </div>
+                    </el-tree>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+    let app = new Vue({
+        el: '#app',
+        data: function () {
+            return {
+                drawerVisible: false,
+                draggable: false,
+                nodeId: 1000,
+                historyTreeData: null,
+                treeData: [
+                    {
+                        "href": null,
+                        "title": "分出/分進作業",
+                        "icon": "fa fa-plus-square",
+                        "child": [
+                            {
+                                "href": "/ckra/riaf001",
+                                "title": "分出帳單維護",
+                                "icon": null,
+                                "child": [],
+                                permission: []
+                            },
+                            {
+                                "href": "/ckra/riaf007",
+                                "title": "分進帳單維護",
+                                "icon": null,
+                                "child": [],
+                                permission: []
+                            }
+                        ]
+                    },
+                    {
+                        "href": null,
+                        "title": "同業往來作業",
+                        "icon": "fa fa-plus-square",
+                        "child": [
+                            {
+                                "href": "/ckra/riaf013",
+                                "title": "同業往來維護",
+                                "icon": null,
+                                "child": [],
+                                permission: []
+                            }
+                        ]
+                    },
+                    {
+                        "href": null,
+                        "title": "應攤回再保賠款作業",
+                        "icon": "fa fa-plus-square",
+                        "child": [
+                            {
+                                "href": "/ckra/riaf011",
+                                "title": "理賠應攤回維護",
+                                "icon": null,
+                                "child": [],
+                                permission: []
+                            }
+                        ]
+                    },
+                    {
+                        "href": null,
+                        "title": "關帳作業",
+                        "icon": "fa fa-plus-square",
+                        "child": [
+                            {
+                                "href": "/ckra/riaf021",
+                                "title": "應攤回各險總數上傳維護",
+                                "icon": null,
+                                "child": [],
+                                permission: []
+                            },
+                            {
+                                "href": "/ckra/riaf022",
+                                "title": "應攤回關帳維護",
+                                "icon": null,
+                                "child": [],
+                                permission: []
+                            },
+                            {
+                                "href": "/ckra/riaf024",
+                                "title": "理賠轉催收備呆作業",
+                                "icon": null,
+                                "child": [],
+                                permission: []
+                            },
+                            {
+                                "href": "/ckra/riaf025",
+                                "title": "同業往來關帳維護",
+                                "icon": null,
+                                "child": [],
+                                permission: []
+                            },
+                            {
+                                "href": "/ckra/riaf026",
+                                "title": "同業往來轉催收備呆作業",
+                                "icon": null,
+                                "child": [],
+                                permission: []
+                            }
+                        ]
+                    },
+                    {
+                        "href": null,
+                        "title": "再保預估作業",
+                        "icon": "fa fa-plus-square",
+                        "child": [
+                            {
+                                "href": "/ckra/riaf031",
+                                "title": "分出預估維護",
+                                "icon": null,
+                                "child": [],
+                                permission: []
+                            },
+                            {
+                                "href": "/ckra/riaf032",
+                                "title": "分進(車險)預估維護",
+                                "icon": null,
+                                "child": [],
+                                permission: []
+                            },
+                            {
+                                "href": "/ckra/riaf033",
+                                "title": "分進(非車險)預估維護",
+                                "icon": null,
+                                "child": [],
+                                permission: []
+                            },
+                            {
+                                "href": "/ckra/riaf034",
+                                "title": "已報未決預估維護",
+                                "icon": null,
+                                "child": [],
+                                permission: []
+                            },
+                            {
+                                "href": "/ckra/riaf035",
+                                "title": "準備金預估維護",
+                                "icon": null,
+                                "child": [],
+                                permission: []
+                            }
+                        ]
+                    },
+                    {
+                        "href": null,
+                        "title": "匯款資訊維護作業",
+                        "icon": "fa fa-plus-square",
+                        "child": [
+                            {
+                                "href": "/ckra/riaf051",
+                                "title": "公司資料維護_財管作業",
+                                "icon": null,
+                                "child": [],
+                                permission: []
+                            },
+                            {
+                                "href": "/ckra/frif001",
+                                "title": "FRIF001",
+                                "icon": null,
+                                "child": [],
+                                permission: []
+                            }
+                        ]
+                    }
+                ],
+                drawerForm: {
+                    mode: null,
+                    data: null,
+                    title: "",
+                    pageTitle: "",
+                    pageUrl: "",
+                    pageIcon: "",
+                    iconOptions: ['el-icon-platform-eleme', 'el-icon-eleme', 'el-icon-delete-solid', 'el-icon-delete', 'el-icon-s-tools', 'el-icon-setting', 'el-icon-user-solid', 'el-icon-user', 'el-icon-phone', 'el-icon-phone-outline', 'el-icon-more', 'el-icon-more-outline', 'el-icon-star-on', 'el-icon-star-off', 'el-icon-s-goods', 'el-icon-goods', 'el-icon-warning', 'el-icon-warning-outline', 'el-icon-question', 'el-icon-info', 'el-icon-remove', 'el-icon-circle-plus', 'el-icon-success', 'el-icon-error', 'el-icon-zoom-in', 'el-icon-zoom-out', 'el-icon-remove-outline', 'el-icon-circle-plus-outline', 'el-icon-circle-check', 'el-icon-circle-close', 'el-icon-s-help', 'el-icon-help', 'el-icon-minus', 'el-icon-plus', 'el-icon-check', 'el-icon-close', 'el-icon-picture', 'el-icon-picture-outline', 'el-icon-picture-outline-round', 'el-icon-upload', 'el-icon-upload2', 'el-icon-download', 'el-icon-camera-solid', 'el-icon-camera', 'el-icon-video-camera-solid', 'el-icon-video-camera', 'el-icon-message-solid', 'el-icon-bell', 'el-icon-s-cooperation', 'el-icon-s-order', 'el-icon-s-platform', 'el-icon-s-fold', 'el-icon-s-unfold', 'el-icon-s-operation', 'el-icon-s-promotion', 'el-icon-s-home', 'el-icon-s-release', 'el-icon-s-ticket', 'el-icon-s-management', 'el-icon-s-open', 'el-icon-s-shop', 'el-icon-s-marketing', 'el-icon-s-flag', 'el-icon-s-comment', 'el-icon-s-finance', 'el-icon-s-claim', 'el-icon-s-custom', 'el-icon-s-opportunity', 'el-icon-s-data', 'el-icon-s-check', 'el-icon-s-grid', 'el-icon-menu', 'el-icon-share', 'el-icon-d-caret', 'el-icon-caret-left', 'el-icon-caret-right', 'el-icon-caret-bottom', 'el-icon-caret-top', 'el-icon-bottom-left', 'el-icon-bottom-right', 'el-icon-back', 'el-icon-right', 'el-icon-bottom', 'el-icon-top', 'el-icon-top-left', 'el-icon-top-right', 'el-icon-arrow-left', 'el-icon-arrow-right', 'el-icon-arrow-down', 'el-icon-arrow-up', 'el-icon-d-arrow-left', 'el-icon-d-arrow-right', 'el-icon-video-pause', 'el-icon-video-play', 'el-icon-refresh', 'el-icon-refresh-right', 'el-icon-refresh-left', 'el-icon-finished', 'el-icon-sort', 'el-icon-sort-up'],
+                }
+            }
+        },
+        computed: {
+        },
+        methods: {
+            sortMenu() {
+                this.draggable = true;
+                this.historyTreeData = JSON.stringify(this.treeData)
+            },
+            saveSortedMenu() {
+                // call api to save
+                let saveConfirm = confirm(`是否儲存排序?`)
+                if (!saveConfirm) { return }
+                this.draggable = false;
+            },
+            cancelSortMenu() {
+                this.treeData = JSON.parse(this.historyTreeData)
+                this.draggable = false;
+            },
+            SwitchModeSave(data) {
+                let saveConfirm = confirm(`是否儲存?`)
+                if (!saveConfirm) { return }
+                switch (this.drawerForm.mode) {
+                    case "addRootmenu":
+                        this.addRootmenu()
+                        break
+                    case "addSubmenu":
+                        this.addSubmenu(data)
+                        break
+                    case "editMenu":
+                        this.editMenu(data)
+                        break
+                }
+            },
+            addRootmenu() {
+                if (this.drawerVisible) {
+                    // call api to save
+                    let newMenu = {
+                        title: this.drawerForm.pageTitle,
+                        href: this.drawerForm.pageUrl ? this.drawerForm.pageUrl : null,
+                        icon: this.drawerForm.pageIcon,
+                        child: []
+                    }
+                    let lastIndex = this.treeData.length - 1
+                    this.$refs.tree.insertAfter(newMenu, this.treeData[lastIndex])
+                    this.drawerVisible = false
+                } else {
+                    this.drawerForm.mode = "addRootmenu"
+                    this.drawerForm.title = "新增根目錄"
+                    this.drawerForm.pageTitle = ""
+                    this.drawerForm.pageUrl = ""
+                    this.drawerForm.pageIcon = ""
+                    this.drawerForm.data = null
+                    this.drawerVisible = true
+                }
+            },
+            addSubmenu(data) {
+                if (this.drawerVisible) {
+                    // call api to save
+                    let newChild = {
+                        title: this.drawerForm.pageTitle,
+                        href: this.drawerForm.pageUrl ? this.drawerForm.pageUrl : null,
+                        icon: this.drawerForm.pageIcon,
+                        child: []
+                    };
+                    this.$refs.tree.append(newChild, data)
+                    this.drawerVisible = false
+                } else {
+                    this.drawerForm.mode = "addSubmenu"
+                    this.drawerForm.title = `新增子選單［${data.title}］`
+                    this.drawerForm.pageTitle = ""
+                    this.drawerForm.pageUrl = ""
+                    this.drawerForm.pageIcon = ""
+                    this.drawerForm.data = data
+                    this.drawerVisible = true
+                }
+            },
+            editMenu(data) {
+                if (this.drawerVisible) {
+                    // call api to save
+                    data.title = this.drawerForm.pageTitle
+                    data.href = this.drawerForm.pageUrl ? this.drawerForm.pageUrl : null
+                    data.icon = this.drawerForm.pageIcon
+                    this.drawerVisible = false
+                } else {
+                    this.drawerForm.mode = "editMenu"
+                    this.drawerForm.title = "編輯目錄"
+                    this.drawerForm.pageTitle = data.title
+                    this.drawerForm.pageUrl = data.href
+                    this.drawerForm.pageIcon = data.icon
+                    this.drawerForm.data = data
+                    this.drawerVisible = true
+                }
+            },
+            delMenu(node, data) {
+                let delConfirm = confirm(`是否刪除『${data.title}』及其子選單？`)
+                if (delConfirm) {
+                    let menuLength = this.treeData.length
+                    let lastRootmenu = this.treeData[this.treeData.length - 1]
+                    if (menuLength === 1 && lastRootmenu.title === data.title) {
+                        alert("至少需保留一個根目錄")
+                        return
+                    }
+                    // call api to delete
+                    this.$refs.tree.remove(node)
+                }
+            },
+        }
+    })
+</script>
+
+</html>
